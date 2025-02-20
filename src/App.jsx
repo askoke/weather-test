@@ -1,9 +1,10 @@
+import React from 'react';
 import './App.css';
 
 function App() {
   return (
     <div className="App">
-      Learn react
+      <h1>Weather Application</h1>
     </div>
   );
 }
