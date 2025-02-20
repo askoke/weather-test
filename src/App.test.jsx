@@ -1,11 +1,21 @@
+import App from './App';
+import WeatherCard from './components/WeatherCard';
+
 import React from 'react';
 import { render, screen, waitFor, within } from '@testing-library/react';
+import { describe, it, expect, afterEach, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
-import { act } from 'react-dom/test-utils';
-import { describe, it, expect, afterEach } from 'vitest';
 import '@testing-library/jest-dom/extend-expect';
-import App from './App';
+
 import { createMockServer } from './createMockServer';
+
+let server;
+beforeEach(() => {
+    server = createMockServer();
+})
+afterEach(() => {
+    server.shutdown();
+})
 
 describe('Weather app tests', () => {
     let server;
@@ -58,12 +68,48 @@ describe('Weather app tests', () => {
         await waitFor(() => expect(screen.getAllByText(/Melbourne/i).length).toEqual(5))
 
         const selected = screen.getAllByText(/Melbourne/i)[3]
-        act(() => {
-            userEvent.click(selected)
-        })
+        userEvent.click(selected)
 
         expect(within(screen.getByTestId('my-weather-list')).getByText(/Melbourne/i)).toBeInTheDocument()
 
         expect(screen.queryByTestId('search-results')).not.toBeInTheDocument()
     });
-});
+})
+
+describe('Weather component tests', () => {
+    it('renders city name', () => {
+        const city = {
+            name: 'Melbourne',
+            country: 'Australia',
+            state: 'Victoria',
+            lat: 0,
+            lon: 0,
+        }
+        render(<WeatherCard city={city} />);
+        expect(screen.getByText(city.name)).toBeInTheDocument();
+    });
+
+    it('renders temperature', async () => {
+        const city = {
+            name: 'Melbourne',
+            country: 'Australia',
+            state: 'Victoria',
+            lat: 0,
+            lon: 0,
+        }
+        render(<WeatherCard city={city} />);
+        await waitFor(() => expect(screen.getByText(4.66)).toBeInTheDocument());
+    });
+
+    it('renders placeholder when temperature is not available', () => {
+        const city = {
+            name: 'Melbourne',
+            country: 'Australia',
+            state: 'Victoria',
+            lat: 0,
+            lon: 0,
+        }
+        render(<WeatherCard city={city} />);
+        expect(screen.getByText('-/-')).toBeInTheDocument();
+    });
+})
